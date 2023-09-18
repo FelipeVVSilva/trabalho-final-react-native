@@ -9,17 +9,16 @@ import {
     Modal,
     Image,
 } from 'react-native';
-import SQLite from 'react-native-sqlite-storage'; // Importe a biblioteca SQLite
+import { openDatabase } from "react-native-sqlite-storage";
 import LogoImage from './assets/LogoCaixa.png'
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import {
-  createDatabase,
-  openDatabase,
-  createTable,
-  addProduct,
-  updateProduct,
-  deleteProduct
-} from './Database.js'
+    selectAllProducts,
+    sqlInsert,
+    sqlDelete,
+    sqlUpdate,
+    sqlCreate
+} from './Database'
 
 const TelaPrincipal = () => {
     const [products, setProducts] = useState([]);
@@ -33,21 +32,30 @@ const TelaPrincipal = () => {
     const [editingPrice, setEditingPrice] = useState('');
     const [editingQuantity, setEditingQuantity] = useState('');
 
-    const listProducts = (db, successCallback, errorCallback) => {
-        db.transaction((tx) => {
-            tx.executeSql('SELECT * FROM products', [], (tx, results) => {
-                if (results && results.rows) { // Verifica se results e results.rows não são nulos
-                    const len = results.rows.length;
-                    const products = [];
-                    for (let i = 0; i < len; i++) {
-                        const row = results.rows.item(i);
-                        products.push(row);
-                    }
-                    setProducts(products);
-                }
-            });
+    const openDB = () => {
+        return new Promise((resolve, reject) => {
+            db = openDatabase({ name: 'LojaDatabase.db', location: 'default', }, resolve, reject);
         });
-    };
+    }
+
+    async function createDatabase() {
+        db.transaction((tx) => {tx.executeSql(sqlCreate, [], () => { console.log('Tabela criada com sucesso!'); }, (error) => 
+            { console.log('Erro ao criar tabela:', error); })});
+    }
+
+    async function listProducts() {
+        db.transaction((tx) => tx.executeSql(selectAllProducts, [], (tx, results) => {
+            if (results && results.rows) { // Verifica se results e results.rows não são nulos
+                const len = results.rows.length;
+                const products = [];
+                for (let i = 0; i < len; i++) {
+                    const row = results.rows.item(i);
+                    products.push(row);
+                }
+                setProducts(products);
+            }
+        }))
+    }
 
     const addProduct = () => {
         if (
@@ -57,8 +65,7 @@ const TelaPrincipal = () => {
         ) {
             // Execute uma inserção no banco de dados SQLite
             db.transaction((tx) => {
-                tx.executeSql(
-                    'INSERT INTO products (name, price, quantity) VALUES (?, ?, ?)',
+                tx.executeSql(sqlInsert,
                     [newProductName, newProductPrice, newProductQuantity],
                     (tx, results) => {
                         if (results.insertId) {
@@ -89,7 +96,7 @@ const TelaPrincipal = () => {
     };
 
     const cancelDelete = () => {
-      setDeleteConfirmationVisible(false);
+        setDeleteConfirmationVisible(false);
     };
 
     const deleteProduct = () => {
@@ -97,8 +104,7 @@ const TelaPrincipal = () => {
             // Execute uma exclusão no banco de dados SQLite
             db.transaction((tx) => {
                 tx.executeSql(
-                    'DELETE FROM products WHERE id = ?',
-                    [selectedProduct.id],
+                    sqlDelete, [selectedProduct.id],
                     (tx, results) => {
                         if (results.rowsAffected > 0) {
                             // Se a exclusão for bem-sucedida, atualize a lista de produtos
@@ -129,8 +135,8 @@ const TelaPrincipal = () => {
     };
 
     const formatPrice = (price) => {
-      const formattedPrice = parseFloat(price).toFixed(2);
-      return `R$ ${formattedPrice.replace('.', ',')}`;
+        const formattedPrice = parseFloat(price).toFixed(2);
+        return `R$ ${formattedPrice.replace('.', ',')}`;
     };
 
     const saveDetails = () => {
@@ -138,7 +144,7 @@ const TelaPrincipal = () => {
             // Execute uma atualização no banco de dados SQLite
             db.transaction((tx) => {
                 tx.executeSql(
-                    'UPDATE products SET name = ?, price = ?, quantity = ? WHERE id = ?',
+                    sqlUpdate,
                     [editingName, editingPrice, editingQuantity, selectedProduct.id],
                     (tx, results) => {
                         if (results.rowsAffected > 0) {
@@ -156,13 +162,18 @@ const TelaPrincipal = () => {
     useEffect(() => {
         try {
             // Abra o banco de dados
-            const db = createDatabase(); // Atribua o banco de dados retornado a uma variável
-    
-            // Crie a tabela de produtos
-            createTable(db); // Passe o banco de dados como argumento
-    
-            // Carregue os produtos
-            listProducts(db);
+            console.log("ENTROU NO USE EFFECTS");
+            console.log("-------------------------------------------------------");
+
+            openDB()
+                .then(() => {
+                    // Banco de dados aberto com sucesso, agora você pode chamar outras funções, como createDatabase ou listProducts, aqui.
+                    createDatabase();
+                    console.log("Banco de dados aberto com sucesso.");
+                })
+                .catch((error) => {
+                    console.error('Erro ao abrir o banco de dados:', error);
+                });
         } catch (error) {
             console.error('Erro ao inicializar o banco de dados:', error);
         }
