@@ -4,9 +4,7 @@ import {
     Text,
     TextInput,
     TouchableOpacity,
-    FlatList,
     StyleSheet,
-    Modal,
     Image,
 } from 'react-native';
 import LogoImage from './assets/LogoCaixa.png'
@@ -14,7 +12,8 @@ import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
 
 
-const TelaPrincipal = () => {
+const TelaPrincipal = ({ navigation }) => {
+    
 
     const URL = "https://e5a1-2804-14d-2a78-8d1f-48b7-7b9f-1822-351c.ngrok-free.app";
 
@@ -24,29 +23,7 @@ const TelaPrincipal = () => {
     const [newProductQuantity, setNewProductQuantity] = useState('');
     const [newProductCode, setNewProductCode] = useState('');
     const [newProductMeasure, setNewProductMeasure] = useState('1'); // 1 para Kg por padrão
-    const [modalVisible, setModalVisible] = useState(false);
-    const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false);
-    const [editingProduct, setEditingProduct] = useState({
-        id: null,
-        name: '',
-        preco: '',
-        quantidade: '',
-        medida: '1', // Valor padrão para quilograma
-    });
-
-    const openEditScreen = (product) => {
-        // Preencha os campos do produto que deseja editar
-        setEditingProduct({
-            id: product.id,
-            codigo: product.codigo,
-            name: product.name,
-            preco: String(product.preco),
-            quantidade: String(product.quantidade),
-            medida: String(product.medida.id),
-        });
-        setModalVisible(true); // Abra o modal de edição
-    };
-
+    
     const getMeasureLabel = (measureValue) => {
         switch (measureValue) {
             case '1':
@@ -58,20 +35,6 @@ const TelaPrincipal = () => {
             default:
                 return '';
         };
-    }
-
-    async function listProducts() {
-        // Fazer uma requisição GET para o endpoint da API
-        try {
-            const response = await axios.get(`${URL}/produtos`);
-            if (response.data) {
-                // Se a requisição for bem-sucedida, atualize o estado 'products' com os dados recebidos
-                setProducts(response.data);
-            }
-        } catch (error) {
-            // Lidar com erros, como exibir uma mensagem de erro ou registrar no console
-            console.error('Erro ao buscar produtos:', error);
-        }
     }
 
     const addProduct = async () => {
@@ -102,7 +65,7 @@ const TelaPrincipal = () => {
 
                 if (response.status === 201) {
                     // Após a adição bem-sucedida (status 201 Created), chame listProducts para atualizar a lista
-                    await listProducts();
+                    alert("Produto cadastrado com sucesso!")
                     setNewProductName('');
                     setNewProductPrice('');
                     setNewProductQuantity('');
@@ -120,76 +83,8 @@ const TelaPrincipal = () => {
         }
     };
 
-
-    const updateProduct = () => {
-        // Construa o objeto JSON para enviar na atualização
-        const updatedProduct = {
-            codigo: editingProduct.id, // O ID não deve ser editado
-            name: editingProduct.name,
-            preco: parseFloat(editingProduct.preco),
-            quantidade: parseInt(editingProduct.quantidade),
-            medida: {
-                id: parseInt(editingProduct.medida),
-            },
-        };
-
-        // Faça uma solicitação de atualização para a API
-        axios
-            .put(`${URL}/produtos/${editingProduct.id}`, updatedProduct)
-            .then((response) => {
-                // Verifique se a atualização foi bem-sucedida e atualize a lista de produtos
-                if (response.status === 200) {
-                    listProducts();
-                    setModalVisible(false); // Feche o modal de edição
-                    // Atualize a lista de produtos (você pode chamar sua função listProducts aqui)
-                }
-            })
-            .catch((error) => {
-                console.error('Erro ao atualizar o produto:', error);
-            });
-    };
-
-    const confirmDelete = (productId) => {
-        // Exibir a janela de confirmação
-        setDeleteConfirmationVisible(true);
-
-        // Configurar o produto que deve ser excluído com base no productId
-        setEditingProduct(products.find((product) => product.id === productId));
-    };
-
-
-    const cancelDelete = () => {
-        setDeleteConfirmationVisible(false);
-    };
-
-    const deleteProduct = async (productId) => {
-        try {
-            const response = await axios.delete(`${URL}/produtos/${productId}`);
-            if (response.status === 204) {
-                setDeleteConfirmationVisible(false);
-                // A exclusão foi bem-sucedida, atualize a lista de produtos
-                await listProducts();
-            } else {
-                throw new Error('Erro ao excluir o produto');
-            }
-        } catch (error) {
-            console.error(error);
-            alert('Erro ao excluir o produto');
-        }
-    };
-
-    const formatPrice = (price) => {
-        const formattedPrice = parseFloat(price).toFixed(2);
-        return `R$ ${formattedPrice}`;
-    };
-
     useEffect(() => {
-        const fetchData = async () => {
-            await listProducts(); // Aguarda o carregamento da lista de produtos
-            // Qualquer ação subsequente que dependa da lista de produtos carregada
-        };
 
-        fetchData();
     }, []);
 
     return (
@@ -198,78 +93,6 @@ const TelaPrincipal = () => {
                 <Text style={styles.title}>Controle de Estoque</Text>
                 <Image source={LogoImage} style={styles.logo} />
             </View>
-
-            <Modal visible={modalVisible} animationType="slide" transparent={true}>
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <TextInput
-                            style={styles.modalInput}
-                            value={editingProduct.codigo}
-                            editable={false} // Impede que o campo seja editável
-                        />
-                        <TextInput
-                            style={styles.modalInput}
-                            value={editingProduct.name}
-                            onChangeText={(value) => setEditingProduct({ ...editingProduct, name: value })}
-                        />
-                        <TextInput
-                            style={styles.modalInput}
-                            value={editingProduct.preco}
-                            onChangeText={(value) => setEditingProduct({ ...editingProduct, preco: value })}
-                            keyboardType="numeric"
-                        />
-                        <TextInput
-                            style={styles.modalInput}
-                            value={editingProduct.quantidade}
-                            onChangeText={(value) => setEditingProduct({ ...editingProduct, quantidade: value })}
-                            keyboardType="numeric"
-                        />
-                        <Picker
-                            style={styles.measurePicker}
-                            selectedValue={editingProduct.medida}
-                            onValueChange={(itemValue) => setEditingProduct({ ...editingProduct, medida: itemValue })}
-                        >
-                            <Picker.Item label="Quilograma" value="1" />
-                            <Picker.Item label="Litro" value="2" />
-                            <Picker.Item label="Pack" value="3" />
-                        </Picker>
-                        <TouchableOpacity style={styles.modalButton} onPress={updateProduct}>
-                            <Text style={styles.modalButtonText}>Confirmar</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.modalButton, styles.cancelButton]}
-                            onPress={() => setModalVisible(false)}
-                        >
-                            <Text style={styles.modalButtonText}>Cancelar</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
-
-
-            <Modal visible={deleteConfirmationVisible} animationType="slide" transparent={true}>
-                <View style={styles.deleteModalContainer}>
-                    <View style={styles.deleteModalContent}>
-                        <Text style={styles.deleteModalText}>Você tem certeza que deseja excluir esse produto?</Text>
-                        <View style={styles.deleteModalButtons}>
-                            <TouchableOpacity
-                                style={[styles.deleteModalButton, styles.deleteButton]}
-                                onPress={() => deleteProduct(editingProduct.id)} // Passar o productId para deleteProduct
-                            >
-                                <Text style={styles.deleteModalButtonText}>Deletar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.deleteModalButton, styles.cancelButton]}
-                                onPress={cancelDelete}
-                            >
-                                <Text style={styles.deleteModalButtonText}>Cancelar</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
-
-
             <TextInput
                 style={styles.input}
                 placeholder="Entre com o nome do produto"
@@ -309,30 +132,14 @@ const TelaPrincipal = () => {
                 <Text style={styles.addButtonText}>Adicionar Produto</Text>
             </TouchableOpacity>
 
-            <FlatList
-                data={products}
-                renderItem={({ item }) => (
-                    <TouchableOpacity
-                        style={styles.productItem}
-                        onPress={() => openEditScreen(item)} // Abra a tela de edição ao clicar no produto
-                    >
-                        <View style={styles.productDetails}>
-                            <Text style={styles.productCode}>#{item.codigo}</Text>
-                            <Text style={styles.productName}>{item.name}</Text>
-                            <Text style={styles.productPrice}>{formatPrice(item.preco)}</Text>
-                            <Text style={styles.productQuantity}>Quantidade: {item.quantidade}</Text>
-                        </View>
-                        <TouchableOpacity
-                            style={styles.deleteProductButton}
-                            onPress={() => confirmDelete(item.id)}
-                        >
-                            <Text style={{ color: 'red' }}>Deletar</Text>
-                        </TouchableOpacity>
-                    </TouchableOpacity>
-                )}
-                keyExtractor={(item) => (item.id ? item.id.toString() : '')}
-                style={styles.list}
-            />
+            <TouchableOpacity
+                style={styles.navigationButton}
+                onPress={() => navigation.navigate('Consulta')} // 'Consulta' é o nome da rota
+            >
+                <Text style={styles.navigationButtonText}>Ir para Consulta</Text>
+            </TouchableOpacity>
+
+            
 
         </View>
     );
@@ -436,12 +243,6 @@ const styles = StyleSheet.create({
         borderRadius: 4,
         marginHorizontal: 5,
     },
-    incrementButton: {
-        backgroundColor: 'green',
-    },
-    decrementButton: {
-        backgroundColor: 'red',
-    },
     quantityButtonText: {
         color: '#fff',
         fontSize: 18,
@@ -506,6 +307,19 @@ const styles = StyleSheet.create({
     deleteButton: {
         backgroundColor: 'red',
     },
+    navigationButton: {
+        backgroundColor: 'green', // Cor de fundo verde
+        padding: 10,
+        borderRadius: 4,
+        alignItems: 'center',
+        marginTop: 5,
+        marginBottom: 20, // Ajuste o espaçamento inferior conforme necessário
+      },
+      navigationButtonText: {
+        color: 'white', // Texto branco
+        fontSize: 16, // Tamanho da fonte
+        fontWeight: 'bold', // Negrito
+      }
 });
 
 export default TelaPrincipal;
