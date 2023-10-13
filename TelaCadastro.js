@@ -12,18 +12,18 @@ import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
 
 
-const TelaPrincipal = ({ navigation }) => {
-    
+const TelaCadastro = ({ navigation }) => {
 
-    const URL = "https://e5a1-2804-14d-2a78-8d1f-48b7-7b9f-1822-351c.ngrok-free.app";
 
-    const [products, setProducts] = useState([]);
+    const URL = "https://8ce4-2804-14d-2a78-8d1f-6898-87a2-41c-7a0a.ngrok-free.app";
+
     const [newProductName, setNewProductName] = useState('');
     const [newProductPrice, setNewProductPrice] = useState('');
     const [newProductQuantity, setNewProductQuantity] = useState('');
     const [newProductCode, setNewProductCode] = useState('');
     const [newProductMeasure, setNewProductMeasure] = useState('1'); // 1 para Kg por padrão
-    
+    const [error, setError] = useState('');
+
     const getMeasureLabel = (measureValue) => {
         switch (measureValue) {
             case '1':
@@ -50,7 +50,7 @@ const TelaPrincipal = ({ navigation }) => {
             newProductCode.trim() !== ''
         ) {
             const productData = {
-                name: newProductName,
+                name: newProductName.toUpperCase(),
                 codigo: newProductCode,
                 preco: newProductPrice,
                 quantidade: parseInt(newProductQuantity),
@@ -64,8 +64,8 @@ const TelaPrincipal = ({ navigation }) => {
                 const response = await axios.post(`${URL}/produtos`, productData);
 
                 if (response.status === 201) {
-                    // Após a adição bem-sucedida (status 201 Created), chame listProducts para atualizar a lista
-                    alert("Produto cadastrado com sucesso!")
+                    setError('');
+                    alert("Produto cadastrado com sucesso!");
                     setNewProductName('');
                     setNewProductPrice('');
                     setNewProductQuantity('');
@@ -75,11 +75,14 @@ const TelaPrincipal = ({ navigation }) => {
                     throw new Error('Erro ao adicionar o produto');
                 }
             } catch (error) {
-                console.error(error);
-                alert('Erro ao adicionar o produto');
+                if (error.response && error.response.status === 400) {
+                    alert(error.response.data.message);
+                    //setError(error.response.data.message);
+                } else {
+                    console.error(error);
+                    alert('Erro ao adicionar o produto');
+                }
             }
-        } else {
-            alert('Por favor, preencha todos os campos obrigatórios.');
         }
     };
 
@@ -131,15 +134,21 @@ const TelaPrincipal = ({ navigation }) => {
             <TouchableOpacity style={styles.addButton} onPress={addProduct}>
                 <Text style={styles.addButtonText}>Adicionar Produto</Text>
             </TouchableOpacity>
-
+           {
+            /*
+            {error && (
+                <Text style={styles.errorText}>
+                    Erro: {error}
+                </Text>
+            )}
+            */
+           } 
             <TouchableOpacity
                 style={styles.navigationButton}
                 onPress={() => navigation.navigate('Consulta')} // 'Consulta' é o nome da rota
             >
                 <Text style={styles.navigationButtonText}>Ir para Consulta</Text>
             </TouchableOpacity>
-
-            
 
         </View>
     );
@@ -314,12 +323,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 5,
         marginBottom: 20, // Ajuste o espaçamento inferior conforme necessário
-      },
-      navigationButtonText: {
+    },
+    navigationButtonText: {
         color: 'white', // Texto branco
         fontSize: 16, // Tamanho da fonte
         fontWeight: 'bold', // Negrito
-      }
+    },
+    errorText: {
+        color: 'red',
+        fontSize: 16,
+    },
+
 });
 
-export default TelaPrincipal;
+export default TelaCadastro;

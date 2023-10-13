@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Picker } from '@react-native-picker/picker';
 
 const Consulta = () => {
-    const URL = "https://e5a1-2804-14d-2a78-8d1f-48b7-7b9f-1822-351c.ngrok-free.app";
+    const URL = "https://8ce4-2804-14d-2a78-8d1f-6898-87a2-41c-7a0a.ngrok-free.app";
     const [products, setProducts] = useState([]);
     const [searchType, setSearchType] = useState('all'); // Inicialmente definido como 'all' (Todos)
     const [searchValue, setSearchValue] = useState('');
@@ -40,8 +40,11 @@ const Consulta = () => {
         // Fazer uma requisição GET para o endpoint da API
         try {
             const response = await axios.get(`${URL}/produtos`);
-            if (response.data) {
-                // Se a requisição for bem-sucedida, atualize o estado 'products' com os dados recebidos
+            if (response.data.length === 0) {
+                alert("Ainda não há produtos cadsatrados");
+                setProducts(response.data);
+            }
+            else{
                 setProducts(response.data);
             }
         } catch (error) {
@@ -58,7 +61,8 @@ const Consulta = () => {
             setSearchValue('');
         } else {
             // Caso contrário, faça a pesquisa com base na opção selecionada (nome ou código)
-            const endpoint = searchType === 'name' ? `nome/${searchValue}` : `codigo/${searchValue}`;
+            const modifiedSearchValue = searchType === 'name' ? searchValue.replace(/ /g, '%20') : searchValue;
+            const endpoint = searchType === 'name' ? `nome/${modifiedSearchValue}` : `codigo/${searchValue}`;
     
             try {
                 const response = await axios.get(`${URL}/produtos/${endpoint}`);
@@ -70,11 +74,15 @@ const Consulta = () => {
                     setProducts([response.data]);
                 }
             } catch (error) {
-                // Lidar com erros, como exibir uma mensagem de erro ou registrar no console
-                console.error('Erro ao buscar produtos:', error);
+                if (error.response && error.response.status === 404) {
+                    alert(error.response.data.message);
+                } else {
+                    console.error('Erro ao buscar produtos:', error);
+                }
             }
         }
     }
+    
 
     const updateProduct = () => {
         // Construa o objeto JSON para enviar na atualização
