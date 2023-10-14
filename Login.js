@@ -1,43 +1,88 @@
 import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Modal } from 'react-native';
+import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
 
-const Login = ({ navigation }) => {
+const Login = () => {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [registrationEmail, setRegistrationEmail] = useState('');
-  const [registrationPassword, setRegistrationPassword] = useState('');
-  const [isEmailTaken, setIsEmailTaken] = useState(false);
+  const [senha, setSenha] = useState('');
+  const [senhaConfirmacao, setSenhaConfirmacao] = useState('');
+  const [isModalVisible, setModalVisible] = useState(false);
+  const URL = 'https://7b27-2804-14d-2a78-8d1f-50da-4004-55ca-542c.ngrok-free.app';
+  const navigation = useNavigation();
 
-  const handleLogin = () => {
-    // Verificar se o email e a senha correspondem ao mock de login
-    if (email === 'admin@gmail.com' && password === 'admin') {
-      // Autenticação bem-sucedida, redirecione para a tela do aplicativo
-      navigation.navigate('App');
-    } else {
-      // Autenticação falhou, você pode exibir uma mensagem de erro aqui
-      alert('Credenciais inválidas. Tente novamente.');
-    }
+  const isEmailValid = (email) => {
+    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i;
+    return emailRegex.test(email);
   };
 
-  const handleRegistration = () => {
-    // Verifique se o email já está sendo usado (apenas um exemplo, em uma implementação real,
-    // você usaria um sistema de gerenciamento de usuários)
-    if (registrationEmail === 'admin@gmail.com') {
-      setIsEmailTaken(true);
+  const handleLogin = async () => {
+    if (!isEmailValid(email)) {
+      Alert.alert('Erro', 'Por favor, insira um e-mail válido.');
       return;
     }
 
-    // Registre o usuário com o email e senha fornecidos (neste exemplo, não há armazenamento real)
-    alert('Usuário registrado com sucesso.');
-    setIsEmailTaken(false);
-    setRegistrationEmail('');
-    setRegistrationPassword('');
+    const userData = {
+      email,
+      senha,
+    };
+
+    try {
+      const response = await axios.post(`${URL}/clientes/login`, userData);
+
+      if (response.status === 200) {
+        navigation.navigate('Cadastro');
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        alert(error.response.data.message);
+      } else if (error.response && error.response.status === 401) {
+        alert(error.response.data.message);
+      } else {
+        Alert.alert('Erro', 'Ocorreu um erro ao processar o login.');
+      }
+    }
+  };
+
+  const handleCadastro = async () => {
+    if (!isEmailValid(email)) {
+      Alert.alert('Erro', 'Por favor, insira um e-mail válido.');
+      return;
+    }
+
+    if (senha !== senhaConfirmacao) {
+      Alert.alert('Erro', 'As senhas não coincidem.');
+      return;
+    }
+
+    const userData = {
+      email,
+      senha,
+    };
+
+    try {
+      const response = await axios.post(`${URL}/clientes`, userData);
+
+      if (response.status === 201) {
+        Alert.alert('Sucesso', 'Cadastro realizado com sucesso.');
+        setEmail('');
+        setSenha('');
+        setSenhaConfirmacao('');
+        toggleModal();
+      } else if (response.status === 400) {
+        Alert.alert('Erro', response.data.message);
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        Alert.alert('Erro', error.response.data.message);
+      } else {
+        Alert.alert('Erro', 'Ocorreu um erro ao processar o cadastro.');
+      }
+    }
+  };
+
+  const toggleModal = () => {
+    setModalVisible(!isModalVisible);
   };
 
   return (
@@ -53,33 +98,50 @@ const Login = ({ navigation }) => {
         style={styles.input}
         placeholder="Senha"
         secureTextEntry={true}
-        value={password}
-        onChangeText={(text) => setPassword(text)}
+        value={senha}
+        onChangeText={(text) => setSenha(text)}
       />
       <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Entrar</Text>
+        <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
 
-      <Text style={styles.title}>Cadastro</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={registrationEmail}
-        onChangeText={(text) => setRegistrationEmail(text)}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Senha"
-        secureTextEntry={true}
-        value={registrationPassword}
-        onChangeText={(text) => setRegistrationPassword(text)}
-      />
-      {isEmailTaken && (
-        <Text style={styles.errorMessage}>Este email já está sendo usado.</Text>
-      )}
-      <TouchableOpacity style={styles.button} onPress={handleRegistration}>
-        <Text style={styles.buttonText}>Cadastrar</Text>
+      <TouchableOpacity style={styles.cadastroButton} onPress={toggleModal}>
+        <Text style={styles.buttonText}>Cadastre-se</Text>
       </TouchableOpacity>
+
+      <Modal transparent={true} visible={isModalVisible}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.title}>Cadastre-se</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              value={email}
+              onChangeText={(text) => setEmail(text)}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Senha"
+              secureTextEntry={true}
+              value={senha}
+              onChangeText={(text) => setSenha(text)}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Confirmar Senha"
+              secureTextEntry={true}
+              value={senhaConfirmacao}
+              onChangeText={(text) => setSenhaConfirmacao(text)}
+            />
+            <TouchableOpacity style={styles.modalButton} onPress={handleCadastro}>
+              <Text style={styles.modalButtonText}>Confirmar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.modalCancelButton} onPress={toggleModal}>
+              <Text style={styles.modalButtonText}>Cancelar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -87,32 +149,72 @@ const Login = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
-    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginTop: 20,
+    marginBottom: 20,
   },
   input: {
-    backgroundColor: '#f5f5f5',
-    padding: 10,
-    marginBottom: 10,
-    borderRadius: 4,
+    backgroundColor: '#fff',
+    padding: 12,
+    marginBottom: 12,
+    borderRadius: 6,
+    width: '80%',
   },
   button: {
     backgroundColor: '#007bff',
-    padding: 10,
-    borderRadius: 4,
+    padding: 14,
+    borderRadius: 6,
     alignItems: 'center',
+    width: '80%',
+  },
+  cadastroButton: {
+    backgroundColor: '#28a745',
+    padding: 14,
+    borderRadius: 6,
+    alignItems: 'center',
+    width: '80%',
+    marginTop: 5,
   },
   buttonText: {
     color: '#fff',
+    fontWeight: 'bold',
   },
-  errorMessage: {
-    color: 'red',
-    marginBottom: 10,
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 8,
+    width: '80%',
+  },
+  modalButton: {
+    backgroundColor: '#007bff',
+    padding: 14,
+    borderRadius: 6,
+    alignItems: 'center',
+    width: '100%',
+    marginTop: 5,
+  },
+  modalCancelButton: {
+    backgroundColor: '#6c757d',
+    padding: 14,
+    borderRadius: 6,
+    alignItems: 'center',
+    width: '100%',
+    marginTop: 5,
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });
 

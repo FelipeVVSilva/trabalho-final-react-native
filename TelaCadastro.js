@@ -15,13 +15,13 @@ import axios from 'axios';
 const TelaCadastro = ({ navigation }) => {
 
 
-    const URL = "https://8ce4-2804-14d-2a78-8d1f-6898-87a2-41c-7a0a.ngrok-free.app";
+    const URL = "https://7b27-2804-14d-2a78-8d1f-50da-4004-55ca-542c.ngrok-free.app";
 
     const [newProductName, setNewProductName] = useState('');
     const [newProductPrice, setNewProductPrice] = useState('');
     const [newProductQuantity, setNewProductQuantity] = useState('');
     const [newProductCode, setNewProductCode] = useState('');
-    const [newProductMeasure, setNewProductMeasure] = useState('1'); // 1 para Kg por padrão
+    const [newProductMeasure, setNewProductMeasure] = useState('1');
     const [error, setError] = useState('');
 
     const getMeasureLabel = (measureValue) => {
@@ -77,7 +77,7 @@ const TelaCadastro = ({ navigation }) => {
             } catch (error) {
                 if (error.response && error.response.status === 400) {
                     alert(error.response.data.message);
-                    //setError(error.response.data.message);
+
                 } else {
                     console.error(error);
                     alert('Erro ao adicionar o produto');
@@ -134,18 +134,18 @@ const TelaCadastro = ({ navigation }) => {
             <TouchableOpacity style={styles.addButton} onPress={addProduct}>
                 <Text style={styles.addButtonText}>Adicionar Produto</Text>
             </TouchableOpacity>
-           {
-            /*
-            {error && (
-                <Text style={styles.errorText}>
-                    Erro: {error}
-                </Text>
-            )}
-            */
-           } 
+            {
+                /*
+                {error && (
+                    <Text style={styles.errorText}>
+                        Erro: {error}
+                    </Text>
+                )}
+                */
+            }
             <TouchableOpacity
                 style={styles.navigationButton}
-                onPress={() => navigation.navigate('Consulta')} // 'Consulta' é o nome da rota
+                onPress={() => navigation.navigate('Consulta')}
             >
                 <Text style={styles.navigationButtonText}>Ir para Consulta</Text>
             </TouchableOpacity>
@@ -317,17 +317,17 @@ const styles = StyleSheet.create({
         backgroundColor: 'red',
     },
     navigationButton: {
-        backgroundColor: 'green', // Cor de fundo verde
+        backgroundColor: 'green',
         padding: 10,
         borderRadius: 4,
         alignItems: 'center',
         marginTop: 5,
-        marginBottom: 20, // Ajuste o espaçamento inferior conforme necessário
+        marginBottom: 20,
     },
     navigationButtonText: {
-        color: 'white', // Texto branco
-        fontSize: 16, // Tamanho da fonte
-        fontWeight: 'bold', // Negrito
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
     errorText: {
         color: 'red',
