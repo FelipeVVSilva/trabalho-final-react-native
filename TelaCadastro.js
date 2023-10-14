@@ -6,6 +6,7 @@ import {
     TouchableOpacity,
     StyleSheet,
     Image,
+    Alert
 } from 'react-native';
 import LogoImage from './assets/LogoCaixa.png'
 import { Picker } from '@react-native-picker/picker';
@@ -15,7 +16,7 @@ import axios from 'axios';
 const TelaCadastro = ({ navigation }) => {
 
 
-    const URL = "https://7b27-2804-14d-2a78-8d1f-50da-4004-55ca-542c.ngrok-free.app";
+    const URL = "https://d09f-2804-14d-2a78-8d1f-c550-9217-951-e17.ngrok-free.app";
 
     const [newProductName, setNewProductName] = useState('');
     const [newProductPrice, setNewProductPrice] = useState('');
@@ -65,7 +66,7 @@ const TelaCadastro = ({ navigation }) => {
 
                 if (response.status === 201) {
                     setError('');
-                    alert("Produto cadastrado com sucesso!");
+                    Alert.alert('Sucesso',"Produto cadastrado com sucesso!");
                     setNewProductName('');
                     setNewProductPrice('');
                     setNewProductQuantity('');
@@ -76,11 +77,11 @@ const TelaCadastro = ({ navigation }) => {
                 }
             } catch (error) {
                 if (error.response && error.response.status === 400) {
-                    alert(error.response.data.message);
+                    Alert.alert('Erro', error.response.data.message);
 
                 } else {
                     console.error(error);
-                    alert('Erro ao adicionar o produto');
+                    Alert.alert('Erro', 'Erro ao adicionar o produto');
                 }
             }
         }

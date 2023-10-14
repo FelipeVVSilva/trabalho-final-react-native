@@ -8,7 +8,7 @@ const Login = () => {
   const [senha, setSenha] = useState('');
   const [senhaConfirmacao, setSenhaConfirmacao] = useState('');
   const [isModalVisible, setModalVisible] = useState(false);
-  const URL = 'https://7b27-2804-14d-2a78-8d1f-50da-4004-55ca-542c.ngrok-free.app';
+  const URL = 'https://d09f-2804-14d-2a78-8d1f-c550-9217-951-e17.ngrok-free.app';
   const navigation = useNavigation();
 
   const isEmailValid = (email) => {
@@ -35,9 +35,9 @@ const Login = () => {
       }
     } catch (error) {
       if (error.response && error.response.status === 404) {
-        alert(error.response.data.message);
+        Alert.alert('Erro', error.response.data.message);
       } else if (error.response && error.response.status === 401) {
-        alert(error.response.data.message);
+        Alert.alert('Erro',error.response.data.message);
       } else {
         Alert.alert('Erro', 'Ocorreu um erro ao processar o login.');
       }

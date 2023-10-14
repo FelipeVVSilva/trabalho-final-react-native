@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Picker } from '@react-native-picker/picker';
 
 const Consulta = () => {
-    const URL = "https://7b27-2804-14d-2a78-8d1f-50da-4004-55ca-542c.ngrok-free.app";
+    const URL = "https://d09f-2804-14d-2a78-8d1f-c550-9217-951-e17.ngrok-free.app";
     const [products, setProducts] = useState([]);
     const [searchType, setSearchType] = useState('all');
     const [searchValue, setSearchValue] = useState('');
@@ -41,7 +41,7 @@ const Consulta = () => {
         try {
             const response = await axios.get(`${URL}/produtos`);
             if (response.data.length === 0) {
-                alert("Ainda não há produtos cadsatrados");
+                Alert.alert('Aviso',"Ainda não há produtos cadsatrados");
                 setProducts(response.data);
             }
             else {
@@ -74,11 +74,14 @@ const Consulta = () => {
                     setProducts([response.data]);
                 }
             } catch (error) {
-                if (error.response && error.response.status === 404) {
+                if (error.response && error.response.status === 404 && error.response.data.message === undefined) {
                     console.log('Erro 404:', error.response.data.message);
-                    alert(error.response.data.message);
-                } else {
-                    console.error('Erro ao buscar produtos:', error);
+                    Alert.alert('Erro', "Digite algum valor");
+                }else if(error.response && error.response.status === 404){
+                    Alert.alert('Erro',error.response.data.message);
+                }
+                else {
+                    console.error('Erro','Erro ao buscar produtos:', error);
                 }
             }
         }
@@ -126,7 +129,7 @@ const Consulta = () => {
             }
         } catch (error) {
             console.error(error);
-            alert('Erro ao excluir o produto');
+            Alert.alert('Erro','Erro ao excluir o produto');
         }
     };
 
