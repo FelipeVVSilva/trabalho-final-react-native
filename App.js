@@ -7,6 +7,7 @@ import Login from './Login.js';
 import AppScreen from './TelaCadastro.js';
 import Consulta from './Consulta';
 
+registerRootComponent(App);
 const Stack = createStackNavigator();
 
 const App = () => {
