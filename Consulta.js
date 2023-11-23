@@ -4,7 +4,7 @@ import axios from 'axios';
 import { Picker } from '@react-native-picker/picker';
 
 const Consulta = () => {
-    const URL = "https://d09f-2804-14d-2a78-8d1f-c550-9217-951-e17.ngrok-free.app";
+    const URL = "https://8fb9-2804-14d-2a78-8d1f-ca3-88d0-defc-771.ngrok-free.app";
     const [products, setProducts] = useState([]);
     const [searchType, setSearchType] = useState('all');
     const [searchValue, setSearchValue] = useState('');
